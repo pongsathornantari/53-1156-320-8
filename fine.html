@@ -3,121 +3,160 @@
     <head>
         <meta charset="utf-8">
         <title>D3 Page Template</title>
-        <script type="text/javascript" src="http://d3js.org/d3.v3.min.js"></script>
 		<style type="text/css">
-			rect:hover {
-					fill: orange;
+
+			body {
+			  font: 10px sans-serif;
 			}
+
+			.axis path,
+			.axis line {
+			  fill: none;
+			  stroke: #000;
+			  shape-rendering: crispEdges;
+			}
+
+			.bar {
+			  fill: orange;
+			}
+
+			.bar:hover {
+			  fill: orangered ;
+			}
+
+			.x.axis path {
+			  display: none;
+			}
+
+			.d3-tip {
+			  line-height: 1;
+			  font-weight: bold;
+			  padding: 12px;
+			  background: rgba(0, 0, 0, 0.8);
+			  color: #fff;
+			  border-radius: 2px;
+			}
+
+			/* Creates a small triangle extender for the tooltip */
+			.d3-tip:after {
+			  box-sizing: border-box;
+			  display: inline;
+			  font-size: 10px;
+			  width: 100%;
+			  line-height: 1;
+			  color: rgba(0, 0, 0, 0.8);
+			  content: "\25BC";
+			  position: absolute;
+			  text-align: center;
+			}
+
+			/* Style northward tooltips differently */
+			.d3-tip.n:after {
+			  margin: -1px 0 0 0;
+			  top: 100%;
+			  left: 0;
+			}
+
 		</style>
     </head>
     <body>
+		<script src="d3.js"></script>
+		<script src="d3-tip.js"></script>
 		<p>ในปัจจุบันนี้มีผู้ที่ไม่ปฏิบัติตามกฎหมายอยู่มากพอสมควร ซึ่งควรจะหาวิธีการรณรงค์เพื่อไม่ให้คนเหล่านั้นปฏิบัติตามกฎหมาย </p>
-		<p>กราฟที่ 1 เป็นกราฟแสดงค่าปรับในความผิดต่างๆ ตามกฎหมาย</p>
-		<script type="text/javascript">
-            //Width and height
-			var w = 900;
-			var h = 250;
-			
-			//var dataset = [ 2, 1, 4, 10, 40];
+		<p>กราฟแสดงค่าปรับในความผิดต่างๆ ตามกฎหมาย  (ข้อมูลสมมติขึ้นมา)</p>
+		<script>
 
-			var xScale = d3.scale.ordinal()
-							.domain(d3.range(dataset.length))
-							.rangeRoundBands([0, w], 0.05);
-
-			var yScale = d3.scale.linear()
-							.domain([0, d3.max(dataset)])
-							.range([0, h]);
-			
-			var xAxis = d3.svg.axis()
-			.scale(x)
-			.orient("bottom")
-			.ticks(5);
-			
-			var yAxis = d3.svg.axis()
-			.scale(y)
-			.orient("left")
-			.ticks(10);
-			
-			//Create SVG element
-			var svg = d3.select("body")
-						.append("svg")
-						.attr("width", w)
-						.attr("height", h);
-
-			d3.csv("fine.csv", function(error, data) {
-				data.forEach(function(d) {
-					d.problem = +d.problem;
-					d.fine = +d.fine;
-				});
+			var margin = {top: 40, right: 20, bottom: 350, left: 40},
+				width = 900 - margin.left - margin.right,
+				height = 700 - margin.top - margin.bottom;
 				
-				x.domain(data.map(function(d) { return d.problem; }));
-				y.domain([0, d3.max(data, function(d) {
-					return d.fine;
-				})]);
-  
-			svg.append("g")
-			.attr("class", "x axis")
-			.attr("transform", "translate(0," + height + ")")
-			.call(xAxis)
-			.selectAll("text")
-			.style("text-anchor", "end")
-			.attr("dx", "-.8em")
-			.attr("dy", "-.55em")
-			.attr("transform", "rotate(-90)" );
+
+			var x = d3.scale.ordinal()
+				.rangeRoundBands([0, width], .1);
+
+			var y = d3.scale.linear()
+				.range([height, 0]);
+
+			var xAxis = d3.svg.axis()
+				.scale(x)
+				.orient("bottom");
+
+			var yAxis = d3.svg.axis()
+				.scale(y)
+				.orient("left")
+				.ticks(10);
+
+			var tip = d3.tip()
+			  .attr('class', 'd3-tip')
+			  .offset([-10, 0])
+			  .html(function(d) {
+				return "<strong>fine:</strong> <span style='color:red'>" + d.fine + "</span>";
+			  })
+
+			var svg = d3.select("body").append("svg")
+				.attr("width", width + margin.left + margin.right)
+				.attr("height", height + margin.top + margin.bottom)
+			  .append("g")
+				.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+			svg.call(tip);
+
+			// The new data variable.
+			var data = [
+			  {letter: "ขับรถฝ่าไฟแดง", fine: 2000},
+			  {letter: "ไม่สวมหมวกนิรภัย", fine: 1000},
+			  {letter: "สูบบุหรี่ในสถานศึกษา", fine: 5000},
+			  {letter: "ทะเลาะวิวาท", fine: 10000},
+			  {letter: "ฆ่าคนตาย", fine: 50000},
+			  {letter: "ลักทรัพย์", fine: 10000},
+			  {letter: "ค้ายาเสพย์ติด", fine: 50000},
+			  {letter: "ทำร้ายร่างกาย", fine: 20000},
+			  {letter: "หมิ่นประมาท", fine: 10000},
+			  {letter: "ฉ้อโกง", fine: 5000},
+			  {letter: "วิ่งราวทรัพย์", fine: 15000},
+			  {letter: "กระทำชำเรา", fine: 25000} 
+			];
+
+			// The following code was contained in the callback function.
+			x.domain(data.map(function(d) { return d.letter; }));
+			y.domain([0, d3.max(data, function(d) { return d.fine; })]);
 
 			svg.append("g")
-			.attr("class", "y axis")
-			.call(yAxis)
-			.append("text")
-			.attr("transform", "rotate(-90)")
-			.attr("y", 6)
-			.attr("dy", ".71em")
-			.style("text-anchor", "end")
-			.text("Fines(500)");
-			
-			//Create bars
-			svg.selectAll("rect")
-			   .data(dataset)
-			   .enter()
-			   .append("rect")
-			   .attr("x", function(d, i) {
-			   		return xScale(i);
-			   })
-			   .attr("y", function(d) {
-			   		return h - yScale(d);
-			   })
-			   .attr("width", xScale.rangeBand())
-			   .attr("height", function(d) {
-			   		return yScale(d);
-			   })
-			   .attr("fill", function(d) {
-					return "rgb(0, 0, " + (d * 10) + ")";
-			   });
+				  .attr("class", "x axis")
+				  .attr("transform", "translate(0," + height + ")")
+				  .call(xAxis)
+				.selectAll("text")
+				  .style("text-anchor", "end")
+				  .attr("dx", "-.8em")
+				  .attr("dy", "-.55em")
+				  .attr("transform", "rotate(-90)" );
 
-			//Create labels
-				svg.selectAll("text")
-				   .data(dataset)
-				   .enter()
-				   .append("text")
-				   .text(function(d) {
-						return d;
-				   })
-				   .attr("text-anchor", "middle")
-				   .attr("x", function(d, i) {
-						return xScale(i) + xScale.rangeBand() / 2;
-				   })
-				   .attr("y", function(d) {
-						return h - yScale(d) + 14;
-				   })
-				   .attr("font-family", "sans-serif")
-				   .attr("font-size", "11px")
-				   .attr("fill", "white");	
-			 
-			 });  
+			svg.append("g")
+				.attr("class", "y axis")
+				.call(yAxis)
+			  .append("text")
+				.attr("transform", "rotate(-90)")
+				.attr("y", 6)
+				.attr("dy", ".71em")
+				.style("text-anchor", "end")
+				.text("fine");
+
+			svg.selectAll(".bar")
+				.data(data)
+			  .enter().append("rect")
+				.attr("class", "bar")
+				.attr("x", function(d) { return x(d.letter); })
+				.attr("width", x.rangeBand())
+				.attr("y", function(d) { return y(d.fine); })
+				.attr("height", function(d) { return height - y(d.fine); })
+				.on('mouseover', tip.show)
+				.on('mouseout', tip.hide)
+
 			function type(d) {
-				d.fine = +d.fine;
-			return d;
-	}
-        </script>		
+			  d.fine = +d.fine;
+			  return d;
+			}
+
+		</script>
     </body>
 </html>
